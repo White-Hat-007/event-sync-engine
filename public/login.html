@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Sign in to Real-Time Event Sync Engine" />
+    <title>Sign In — EventSyncEngine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0d0f1a;
+            --surface: #151929;
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #6C63FF;
+            --accent-glow: rgba(108, 99, 255, 0.35);
+            --text: #e2e8f0;
+            --text-muted: #8892a0;
+            --danger: #ff5c7a;
+            --success: #43e97b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.18;
+            pointer-events: none;
+        }
+
+        body::before {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, #6C63FF, transparent);
+            top: -200px;
+            left: -200px;
+            animation: orb1 12s ease-in-out infinite alternate;
+        }
+
+        body::after {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #FF6584, transparent);
+            bottom: -150px;
+            right: -150px;
+            animation: orb2 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes orb1 {
+            to {
+                transform: translate(80px, 80px);
+            }
+        }
+
+        @keyframes orb2 {
+            to {
+                transform: translate(-60px, -60px);
+            }
+        }
+
+        .auth-card {
+            position: relative;
+            background: rgba(21, 25, 41, 0.85);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(108, 99, 255, 0.1);
+            animation: cardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.75rem;
+            justify-content: center;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #6C63FF, #FF6584);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .logo-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: #fff;
+        }
+
+        .logo-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .logo-text h1 span {
+            color: var(--accent);
+        }
+
+        .logo-text p {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 1.75rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.55rem;
+            border: none;
+            border-radius: 7px;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 2px 12px var(--accent-glow);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.7rem 0.9rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        input.invalid {
+            border-color: var(--danger) !important;
+            box-shadow: 0 0 0 3px rgba(255, 92, 122, 0.2) !important;
+        }
+
+        input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Password eye toggle wrapper */
+        .pw-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .pw-wrap input {
+            padding-right: 2.6rem;
+        }
+
+        .pw-eye {
+            position: absolute;
+            right: 0.75rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            padding: 0;
+            transition: color 0.2s;
+            z-index: 1;
+        }
+
+        .pw-eye:hover {
+            color: var(--accent);
+        }
+
+        .pw-eye svg {
+            width: 18px;
+            height: 18px;
+            pointer-events: none;
+        }
+
+        /* Inline field error */
+        .field-error {
+            font-size: 0.75rem;
+            color: var(--danger);
+            margin-top: 0.3rem;
+            display: none;
+        }
+
+        .field-error.show {
+            display: block;
+        }
+
+        .btn-auth {
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, #6C63FF, #8B7CF6);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 20px var(--accent-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-auth:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 28px var(--accent-glow);
+        }
+
+        .btn-auth:active {
+            transform: translateY(0);
+        }
+
+        .btn-auth:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 0.7rem 0.9rem;
+            border-radius: 9px;
+            font-size: 0.83rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert.error {
+            background: rgba(255, 92, 122, 0.12);
+            border: 1px solid rgba(255, 92, 122, 0.3);
+            color: var(--danger);
+        }
+
+        .alert.success {
+            background: rgba(67, 233, 123, 0.1);
+            border: 1px solid rgba(67, 233, 123, 0.25);
+            color: var(--success);
+        }
+
+        .alert.show {
+            display: block;
+            animation: alertIn 0.25s ease;
+        }
+
+        @keyframes alertIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .spinner-sm {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        .btn-auth.loading .btn-label {
+            display: none;
+        }
+
+        .btn-auth.loading .spinner-sm {
+            display: block;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-card">
+        <!-- Logo -->
+        <div class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
+            </div>
+            <div class="logo-text">
+                <h1>EventSync<span>Engine</span></h1>
+                <p>Real-Time Collaborative Dashboard</p>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs" role="tablist">
+            <button class="tab-btn active" id="tab-login" role="tab" aria-selected="true">Sign In</button>
+            <button class="tab-btn" id="tab-register" role="tab" aria-selected="false">Register</button>
+        </div>
+
+        <!-- Alert -->
+        <div class="alert" id="auth-alert" role="alert"></div>
+
+        <!-- ── Login Form ───────────────────────────────── -->
+        <form id="login-form" autocomplete="off" novalidate>
+            <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" placeholder="you@example.com" required />
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <div class="pw-wrap">
+                    <input type="password" id="login-password" placeholder="••••••••" required />
+                    <button type="button" class="pw-eye" title="Show password"
+                        onclick="_togglePw('login-password', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="btn-auth" id="btn-login">
+                <span class="btn-label">Sign In</span>
+                <div class="spinner-sm"></div>
+            </button>
+            <a href="/reset-password.html"
+                style="display:block;text-align:center;margin-top:0.85rem;font-size:0.8rem;color:#94a3b8;text-decoration:none;transition:color 0.2s;"
+                onmouseover="this.style.color='#6C63FF'" onmouseout="this.style.color='#94a3b8'">Forgot Password?</a>
+        </form>
+
+        <!-- ── Register Form ────────────────────────────── -->
+        <form id="register-form" autocomplete="off" novalidate style="display:none;">
+            <div class="form-group">
+                <label for="reg-username">Username</label>
+                <input type="text" id="reg-username" placeholder="john_doe" required />
+            </div>
+            <div class="form-group">
+                <label for="reg-email">Email</label>
+                <input type="email" id="reg-email" placeholder="you@example.com" required oninput="_validateEmail(this)"
+                    onblur="_validateEmail(this)" />
+                <div class="field-error" id="reg-email-err">Enter a valid email address.</div>
+            </div>
+            <div class="form-group">
+                <label for="reg-password">Password <span style="color:var(--text-muted);font-weight:400">(min 6
+                        chars)</span></label>
+                <div class="pw-wrap">
+                    <input type="password" id="reg-password" placeholder="••••••••" required minlength="6" />
+                    <button type="button" class="pw-eye" title="Show password"
+                        onclick="_togglePw('reg-password', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="btn-auth" id="btn-register">
+                <span class="btn-label">Create Account</span>
+                <div class="spinner-sm"></div>
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // ── Eye toggle ──────────────────────────────────────────
+        function _togglePw(inputId, btn) {
+            const inp = document.getElementById(inputId);
+            const nowShowing = inp.type === 'password';
+            inp.type = nowShowing ? 'text' : 'password';
+            btn.title = nowShowing ? 'Hide password' : 'Show password';
+            btn.querySelector('svg').innerHTML = nowShowing
+                // eye-off (slash) icon — currently showing
+                ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+                // eye icon — currently hidden
+                : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+        }
+
+        // ── Email validation ───────────────────────────────────
+        const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        function _validateEmail(el) {
+            const errEl = document.getElementById('reg-email-err');
+            const v = el.value.trim();
+            const bad = v !== '' && !EMAIL_RE.test(v);
+            el.classList.toggle('invalid', bad);
+            errEl.classList.toggle('show', bad);
+        }
+
+        // ── DOM refs ───────────────────────────────────────────
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const authAlert = document.getElementById('auth-alert');
+
+        function showAlert(msg, type = 'error') {
+            authAlert.textContent = msg;
+            authAlert.className = `alert ${type} show`;
+        }
+        function clearAlert() { authAlert.className = 'alert'; }
+
+        // ── Tab switching ──────────────────────────────────────
+        tabLogin.addEventListener('click', () => {
+            tabLogin.classList.add('active'); tabLogin.setAttribute('aria-selected', 'true');
+            tabRegister.classList.remove('active'); tabRegister.setAttribute('aria-selected', 'false');
+            loginForm.style.display = ''; registerForm.style.display = 'none';
+            clearAlert();
+        });
+        tabRegister.addEventListener('click', () => {
+            tabRegister.classList.add('active'); tabRegister.setAttribute('aria-selected', 'true');
+            tabLogin.classList.remove('active'); tabLogin.setAttribute('aria-selected', 'false');
+            registerForm.style.display = ''; loginForm.style.display = 'none';
+            clearAlert();
+        });
+
+        // ── Shared auth request ────────────────────────────────
+        async function authRequest(url, body, btn) {
+            clearAlert();
+            btn.classList.add('loading'); btn.disabled = true;
+            try {
+                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                const json = await res.json();
+                if (!json.success) throw new Error(json.message);
+                return json;
+            } catch (err) {
+                if (err instanceof TypeError) throw new Error('Cannot reach the server. Make sure it is running on port ' + (location.port || '3000') + '.');
+                throw err;
+            } finally {
+                btn.classList.remove('loading'); btn.disabled = false;
+            }
+        }
+
+        // ── Login ──────────────────────────────────────────────
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-login');
+            try {
+                const json = await authRequest('/api/auth/login', {
+                    email: document.getElementById('login-email').value.trim(),
+                    password: document.getElementById('login-password').value
+                }, btn);
+                localStorage.setItem('eventsync_token', json.token);
+                localStorage.setItem('eventsync_user', JSON.stringify(json.user));
+                showAlert('Signed in! Redirecting…', 'success');
+                setTimeout(() => window.location.replace('/'), 500);
+            } catch (err) { showAlert(err.message); }
+        });
+
+        // ── Register ───────────────────────────────────────────
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const emailEl = document.getElementById('reg-email');
+            if (!EMAIL_RE.test(emailEl.value.trim())) {
+                emailEl.classList.add('invalid');
+                document.getElementById('reg-email-err').classList.add('show');
+                emailEl.focus();
+                return;
+            }
+            const btn = document.getElementById('btn-register');
+            try {
+                const json = await authRequest('/api/auth/register', {
+                    username: document.getElementById('reg-username').value.trim(),
+                    email: emailEl.value.trim(),
+                    password: document.getElementById('reg-password').value
+                }, btn);
+                localStorage.setItem('eventsync_token', json.token);
+                localStorage.setItem('eventsync_user', JSON.stringify(json.user));
+                showAlert('Account created! Redirecting…', 'success');
+                setTimeout(() => window.location.replace('/'), 600);
+            } catch (err) { showAlert(err.message); }
+        });
+    </script>
+</body>
+
+</html>
