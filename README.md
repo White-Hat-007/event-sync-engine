@@ -62,6 +62,4 @@ A high-performance, real-time event management and synchronization system built 
 
 This project includes the `.agent/` directory, which contains the specialized AI agents and skills used during development. This allows for seamless collaborative development with AI-agentic assistants like Antigravity.
 
-## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
