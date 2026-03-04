@@ -31,6 +31,32 @@ const UserModel = {
             [username, email, password_hash, userRole, color]
         );
         return this.findById(result.insertId);
+    },
+
+    // ── Get all users (admin panel) ──────────────────────
+    async getAll() {
+        const [rows] = await pool.query(
+            'SELECT id, username, email, role, avatar_color, created_at FROM users ORDER BY created_at ASC'
+        );
+        return rows;
+    },
+
+    // ── Get all events a user is registered for ──────────
+    async getRegistrations(userId) {
+        const [rows] = await pool.query(`
+      SELECT e.id, e.title, e.event_date, e.event_end_date, e.event_time, e.event_end_time, e.status, ep.joined_at
+      FROM event_participants ep
+      JOIN events e ON ep.event_id = e.id
+      WHERE ep.user_id = ?
+      ORDER BY e.event_date DESC, e.event_time DESC
+    `, [userId]);
+        return rows;
+    },
+
+    // ── Update user role ─────────────────────────────────
+    async updateRole(id, role) {
+        await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, id]);
+        return this.findById(id);
     }
 };
 

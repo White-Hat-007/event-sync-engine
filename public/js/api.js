@@ -6,7 +6,7 @@ const AUTH_BASE = '/api/auth';
 
 // ── Helper: get stored JWT ────────────────────────────────
 function _authHeader() {
-    const token = localStorage.getItem('eventsync_token');
+    const token = sessionStorage.getItem('eventsync_token');
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
@@ -44,13 +44,33 @@ const Auth = {
     },
 
     logout() {
-        localStorage.removeItem('eventsync_token');
-        localStorage.removeItem('eventsync_user');
+        sessionStorage.removeItem('eventsync_token');
+        sessionStorage.removeItem('eventsync_user');
         window.location.replace('/login.html');
     },
 
     async fetchAllUsers() {
-        const res = await fetch(`${AUTH_BASE}/users`, {
+        const res = await fetch('/api/users', {
+            headers: { ..._authHeader() }
+        });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message);
+        return json.data;
+    },
+
+    async updateUserRole(userId, role) {
+        const res = await fetch(`/api/users/${userId}/role`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', ..._authHeader() },
+            body: JSON.stringify({ role })
+        });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message);
+        return json.data;
+    },
+
+    async fetchUserRegistrations(userId) {
+        const res = await fetch(`/api/users/${userId}/registrations`, {
             headers: { ..._authHeader() }
         });
         const json = await res.json();

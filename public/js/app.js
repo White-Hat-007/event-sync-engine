@@ -8,11 +8,11 @@
     'use strict';
 
     // ── Auth Guard ─────────────────────────────────────────
-    const _token = localStorage.getItem('eventsync_token');
+    const _token = sessionStorage.getItem('eventsync_token');
     if (!_token) { window.location.replace('/login.html'); return; }
 
     const _user = (() => {
-        try { return JSON.parse(localStorage.getItem('eventsync_user') || '{}'); } catch { return {}; }
+        try { return JSON.parse(sessionStorage.getItem('eventsync_user') || '{}'); } catch { return {}; }
     })();
     const _isAdmin = _user.role === 'admin';
 
@@ -50,6 +50,11 @@
     const toastContainer = $('#toast-container');
     const adminFormCard = $('#admin-form-card');
     const userRoleBadge = $('#user-role-badge');
+    const regModal = $('#registrations-modal-overlay');
+    const regTitle = $('#registrations-modal-title');
+    const regList = $('#registrations-list');
+    const btnRegClose = $('#btn-close-registrations');
+    const btnRegCloseFooter = $('#btn-close-registrations-footer');
 
     // ── Show admin form only for admins ─────────────────────
     if (_isAdmin && adminFormCard) {
@@ -58,15 +63,15 @@
 
     // ── Populate user chip + role badge ─────────────────────
     if (_user.username) {
-        if (userAvatar) { userAvatar.textContent = _user.username[0].toUpperCase(); userAvatar.style.background = _user.avatar_color || '#6C63FF'; }
+        if (userAvatar) { userAvatar.textContent = _user.username[0].toUpperCase(); userAvatar.style.background = _user.avatar_color || '#6366f1'; }
         if (userNameEl) userNameEl.textContent = _user.username;
         if (userDisplay) userDisplay.style.display = 'flex';
         if (userRoleBadge) {
             userRoleBadge.textContent = _isAdmin ? 'Admin' : 'User';
             userRoleBadge.style.display = 'inline-block';
-            userRoleBadge.style.background = _isAdmin ? 'rgba(108,99,255,0.2)' : 'rgba(67,233,123,0.15)';
-            userRoleBadge.style.color = _isAdmin ? '#6C63FF' : '#43e97b';
-            userRoleBadge.style.border = _isAdmin ? '1px solid rgba(108,99,255,0.3)' : '1px solid rgba(67,233,123,0.25)';
+            userRoleBadge.style.background = _isAdmin ? 'rgba(99,102,241,0.2)' : 'rgba(67,233,123,0.15)';
+            userRoleBadge.style.color = _isAdmin ? '#6366f1' : '#43e97b';
+            userRoleBadge.style.border = _isAdmin ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(67,233,123,0.25)';
         }
     }
 
@@ -95,7 +100,7 @@
     async function _openUsers() {
         if (!uPanel) return;
         uPanel.style.display = 'block';
-        if (uList) uList.innerHTML = '<div style="text-align:center;padding:2.5rem;color:#64748b;"><div style="width:34px;height:34px;border:3px solid rgba(108,99,255,0.25);border-top-color:#6C63FF;border-radius:50%;animation:spin 0.9s linear infinite;margin:0 auto 0.8rem;"></div>Loading&hellip;</div>';
+        if (uList) uList.innerHTML = '<div style="text-align:center;padding:2.5rem;color:#64748b;"><div style="width:34px;height:34px;border:3px solid rgba(99,102,241,0.25);border-top-color:#6366f1;border-radius:50%;animation:spin 0.9s linear infinite;margin:0 auto 0.8rem;"></div>Loading&hellip;</div>';
         if (uSummary) uSummary.innerHTML = '';
         try {
             _allUsers = await Auth.fetchAllUsers();
@@ -111,12 +116,10 @@
         const shown = users.filter(u => u.username.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
 
         const total = users.length, admins = users.filter(u => u.role === 'admin').length;
-        const withEv = users.filter(u => u.registered_events.length > 0).length;
         uSummary.innerHTML = [
-            _chip(total, 'Total Users', '#6C63FF', 'rgba(108,99,255,0.12)'),
+            _chip(total, 'Total Users', '#6366f1', 'rgba(99,102,241,0.12)'),
             _chip(admins, 'Admins', '#FF6584', 'rgba(255,101,132,0.12)'),
             _chip(total - admins, 'Regular Users', '#43E97B', 'rgba(67,233,123,0.1)'),
-            _chip(withEv, 'Have Event RSVPs', '#F9A826', 'rgba(249,168,38,0.1)'),
         ].join('');
 
         if (!shown.length) {
@@ -126,37 +129,107 @@
 
         uList.innerHTML = shown.map(u => {
             const isAdm = u.role === 'admin';
+            const isSelf = u.id === _user.id;
             const joined = new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const chips = u.registered_events.map(ev => {
-                const sc = { upcoming: '#6C63FF', ongoing: '#43E97B', completed: '#64748b', cancelled: '#FF6584' }[ev.status] || '#64748b';
-                const ed = new Date(ev.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                return `<span style="display:inline-flex;align-items:center;gap:0.28rem;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:6px;padding:0.18rem 0.5rem;font-size:0.71rem;color:#cbd5e1;">
-                    <span style="width:6px;height:6px;border-radius:50%;background:${sc};flex-shrink:0;"></span>
-                    ${escapeHtml(ev.title)} &middot; ${ed}
-                </span>`;
-            }).join('');
+            const newRole = isAdm ? 'user' : 'admin';
+            const toggleLabel = isAdm ? 'Demote to User' : 'Promote to Admin';
+            const toggleColor = isAdm ? '#ff5c7a' : '#43E97B';
+            const toggleBg = isAdm ? 'rgba(255,92,122,0.12)' : 'rgba(67,233,123,0.1)';
+            const toggleBorder = isAdm ? 'rgba(255,92,122,0.3)' : 'rgba(67,233,123,0.25)';
 
-            return `<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:13px;padding:1rem 1.2rem;transition:border-color .2s,background .2s;" onmouseover="this.style.borderColor='rgba(108,99,255,0.32)';this.style.background='rgba(108,99,255,0.05)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.07)';this.style.background='rgba(255,255,255,0.03)'">
-              <div style="display:flex;align-items:flex-start;gap:0.95rem;">
-                <div style="width:44px;height:44px;border-radius:50%;background:${escapeHtml(u.avatar_color || '#6C63FF')};display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0;">${escapeHtml(u.username[0].toUpperCase())}</div>
+            return `<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:13px;padding:1rem 1.2rem;transition:border-color .2s,background .2s;" onmouseover="this.style.borderColor='rgba(99,102,241,0.32)';this.style.background='rgba(99,102,241,0.05)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.07)';this.style.background='rgba(255,255,255,0.03)'">
+              <div style="display:flex;align-items:center;gap:0.95rem;">
+                <div style="width:44px;height:44px;border-radius:50%;background:${escapeHtml(u.avatar_color || '#6366f1')};display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0;">${escapeHtml(u.username[0].toUpperCase())}</div>
                 <div style="flex:1;min-width:0;">
                   <div style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;margin-bottom:0.18rem;">
                     <span style="font-weight:600;font-size:0.93rem;color:#f1f5f9;">${escapeHtml(u.username)}</span>
-                    <span style="font-size:0.63rem;font-weight:700;padding:0.1rem 0.38rem;border-radius:5px;letter-spacing:.04em;text-transform:uppercase;background:${isAdm ? 'rgba(108,99,255,0.2)' : 'rgba(67,233,123,0.12)'};color:${isAdm ? '#8b83ff' : '#43e97b'};border:1px solid ${isAdm ? 'rgba(108,99,255,0.3)' : 'rgba(67,233,123,0.25)'};">${escapeHtml(u.role)}</span>
+                    <span style="font-size:0.63rem;font-weight:700;padding:0.1rem 0.38rem;border-radius:5px;letter-spacing:.04em;text-transform:uppercase;background:${isAdm ? 'rgba(99,102,241,0.2)' : 'rgba(67,233,123,0.12)'};color:${isAdm ? '#818cf8' : '#43e97b'};border:1px solid ${isAdm ? 'rgba(99,102,241,0.3)' : 'rgba(67,233,123,0.25)'};">${escapeHtml(u.role)}</span>
+                    ${isSelf ? '<span style="font-size:0.6rem;color:#64748b;font-style:italic;">(you)</span>' : ''}
                   </div>
                   <div style="font-size:0.8rem;color:#64748b;margin-bottom:0.35rem;">${escapeHtml(u.email)}</div>
-                  <div style="font-size:0.7rem;color:#475569;margin-bottom:${u.registered_events.length ? '0.5rem' : '0'};">
+                  <div style="font-size:0.7rem;color:#475569;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;vertical-align:middle;margin-right:0.2rem;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                     Joined ${joined}
                   </div>
-                  ${u.registered_events.length
-                    ? `<div style="display:flex;flex-wrap:wrap;gap:0.35rem;align-items:center;"><span style="font-size:0.68rem;color:#475569;margin-right:0.1rem;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;vertical-align:middle;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> ${u.registered_events.length} event${u.registered_events.length !== 1 ? 's' : ''}:</span>${chips}</div>`
-                    : '<span style="font-size:0.7rem;color:#334155;font-style:italic;">No event registrations</span>'}
                 </div>
+                ${isSelf ? '' : `
+                  <div style="display:flex;gap:0.5rem;flex-shrink:0;">
+                    <button onclick="window._toggleRegistrations(${u.id},'${escapeHtml(u.username)}', this)" style="padding:0.35rem 0.7rem;font-size:0.72rem;font-weight:600;font-family:inherit;border-radius:7px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#cbd5e1;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">View Registrations</button>
+                    <button onclick="window._toggleRole(${u.id},'${newRole}')" style="padding:0.35rem 0.7rem;font-size:0.72rem;font-weight:600;font-family:inherit;border-radius:7px;border:1px solid ${toggleBorder};background:${toggleBg};color:${toggleColor};cursor:pointer;transition:all .2s;white-space:nowrap;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">${toggleLabel}</button>
+                  </div>
+                `}
+              </div>
+              <div id="user-reg-container-${u.id}" style="display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05);">
+                <!-- Inline registrations will appear here -->
               </div>
             </div>`;
         }).join('');
     }
+
+    // Global handler for role toggle buttons
+    window._toggleRole = async function (userId, newRole) {
+        try {
+            await Auth.updateUserRole(userId, newRole);
+            showToast(`Role updated to ${newRole}`, 'success');
+
+            // Sync live: Emit socket event so all admins see the change immediately
+            if (SyncSocket && SyncSocket.connected) {
+                SyncSocket.emit('role-updated', { userId, newRole });
+            }
+
+            _allUsers = await Auth.fetchAllUsers();
+            _renderUsers(_allUsers);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    };
+
+    // Global handler for viewing registrations inline
+    window._toggleRegistrations = async function (userId, username, btn) {
+        const container = $(`#user-reg-container-${userId}`);
+        if (!container) return;
+
+        if (container.style.display === 'block') {
+            container.style.display = 'none';
+            btn.textContent = 'View Registrations';
+            return;
+        }
+
+        container.style.display = 'block';
+        btn.textContent = 'Hide Registrations';
+        container.innerHTML = '<div style="font-size:0.75rem;color:#64748b;padding:0.5rem 0;"><div style="width:14px;height:14px;border:2px solid rgba(99,102,241,0.25);border-top-color:#6366f1;border-radius:50%;animation:spin 0.9s linear infinite;display:inline-block;vertical-align:middle;margin-right:0.5rem;"></div>Loading events&hellip;</div>';
+
+        try {
+            const registrations = await Auth.fetchUserRegistrations(userId);
+            if (!registrations || registrations.length === 0) {
+                container.innerHTML = '<p style="font-size:0.75rem;color:#64748b;padding:0.5rem 0;">This user has not registered for any events.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+              <div style="font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">Registered Events (${registrations.length})</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));gap:0.75rem;">
+                ${registrations.map(r => {
+                const dateStr = formatDate(r.event_date);
+                const statusClass = `badge-${r.status}`;
+                return `
+                    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:0.6rem 0.8rem;">
+                      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.25rem;">
+                        <div style="font-weight:600;color:#f1f5f9;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.title)}</div>
+                        <span class="badge ${statusClass}" style="font-size:0.55rem;padding:0.05rem 0.3rem;">${r.status}</span>
+                      </div>
+                      <div style="font-size:0.7rem;color:#64748b;display:flex;align-items:center;gap:0.3rem;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        ${dateStr}
+                      </div>
+                    </div>`;
+            }).join('')}
+              </div>`;
+        } catch (err) {
+            container.innerHTML = `<p style="color:#ff5c7a;font-size:0.75rem;padding:0.5rem 0;">Error: ${escapeHtml(err.message)}</p>`;
+        }
+    };
+
 
     function _chip(v, label, color, bg) {
         return `<div style="background:${bg};border:1px solid ${color}30;border-radius:10px;padding:0.48rem 0.85rem;flex-shrink:0;">
@@ -176,7 +249,9 @@
     const fTitle = $('#event-title');
     const fDescription = $('#event-description');
     const fDate = $('#event-date');
+    const fEndDate = $('#event-end-date');
     const fTime = $('#event-time');
+    const fEndTime = $('#event-end-time');
     const fLocation = $('#event-location');
     const fPriority = $('#event-priority');
     const fStatus = $('#event-status');
@@ -188,6 +263,7 @@
     };
 
     const formatTime = (t) => {
+        if (!t) return '';
         const [h, m] = t.split(':');
         const hour = parseInt(h, 10);
         const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -270,11 +346,11 @@
         <div class="event-card-meta">
           <span class="meta-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            ${formatDate(ev.event_date)}
+            ${formatDate(ev.event_date)}${ev.event_end_date && ev.event_end_date.split('T')[0] !== ev.event_date.split('T')[0] ? ` – ${formatDate(ev.event_end_date)}` : ''}
           </span>
           <span class="meta-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            ${formatTime(ev.event_time)}
+            ${formatTime(ev.event_time)}${ev.event_end_time ? ` – ${formatTime(ev.event_end_time)}` : ''}
           </span>
           ${ev.location ? `
           <span class="meta-item">
@@ -285,7 +361,7 @@
         </div>
         <div class="event-card-footer">
           <div class="event-card-creator">
-            <span class="avatar-dot" style="background:${escapeHtml(ev.avatar_color || '#6C63FF')}">${escapeHtml((ev.creator_name || 'U')[0].toUpperCase())}</span>
+            <span class="avatar-dot" style="background:${escapeHtml(ev.avatar_color || '#6366f1')}">${escapeHtml((ev.creator_name || 'U')[0].toUpperCase())}</span>
             ${escapeHtml(ev.creator_name || 'Unknown')}
           </div>
           <div class="event-card-actions">
@@ -374,7 +450,9 @@
         fTitle.value = ev.title;
         fDescription.value = ev.description || '';
         fDate.value = ev.event_date.split('T')[0];
+        fEndDate.value = ev.event_end_date ? ev.event_end_date.split('T')[0] : '';
         fTime.value = ev.event_time;
+        fEndTime.value = ev.event_end_time || '';
         fLocation.value = ev.location || '';
         fPriority.value = ev.priority;
         fStatus.value = ev.status;
@@ -411,7 +489,9 @@
                 title: fTitle.value.trim(),
                 description: fDescription.value.trim(),
                 event_date: fDate.value,
+                event_end_date: fEndDate.value || null,
                 event_time: fTime.value,
+                event_end_time: fEndTime.value || null,
                 location: fLocation.value.trim(),
                 priority: fPriority.value,
                 status: fStatus.value
@@ -572,6 +652,44 @@
             _myRsvps.delete(eventId);
         }
         renderEvents();
+    });
+
+    SyncSocket.on('user:registered', async (user) => {
+        // If users panel is open or we are admin, refresh list and stats
+        if (_isAdmin) {
+            _allUsers = await Auth.fetchAllUsers();
+            _renderUsers(_allUsers);
+            showToast(`New user registered: ${user.username}`, 'info');
+        }
+    });
+
+    SyncSocket.on('role-synced', async ({ userId, newRole }) => {
+        // 1. If this is us, update our local role and UI live!
+        if (userId === _user.id) {
+            _user.role = newRole;
+            _isAdmin = (newRole === 'admin');
+
+            // Update UI elements based on new role
+            if (adminFormCard) adminFormCard.style.display = _isAdmin ? 'block' : 'none';
+            if (btnUsersPanel) btnUsersPanel.style.display = _isAdmin ? 'flex' : 'none';
+
+            // Re-render events to show/hide edit/delete buttons
+            renderEvents();
+
+            // Re-render auth header
+            if (userRoleBadge) {
+                userRoleBadge.textContent = newRole.toUpperCase();
+                userRoleBadge.className = `role-badge ${newRole === 'admin' ? 'role-admin' : 'role-user'}`;
+            }
+
+            showToast(`Your account has been promoted to ${newRole}! Permissions updated live.`, 'success');
+        }
+
+        // 2. If we are an admin, refresh the users list
+        if (_isAdmin) {
+            _allUsers = await Auth.fetchAllUsers();
+            _renderUsers(_allUsers);
+        }
     });
 
     // ── Initial Load ───────────────────────────────────────

@@ -2,12 +2,15 @@
 // Auth Controller — register, login, me, forgot/reset
 // ─────────────────────────────────────────────────────────
 const crypto = require('crypto');
+const dns = require('dns');
+const { promisify } = require('util');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/userModel');
 const pool = require('../config/db');
 const { sendMail } = require('../config/email');
 
+const resolveMx = promisify(dns.resolveMx);
 const SALT_ROUNDS = 10;
 const RESET_TOKEN_EXPIRY_MINUTES = 30;
 
@@ -18,6 +21,12 @@ function signToken(user) {
         { expiresIn: '7d' }
     );
 }
+
+// Helper: access the Socket.io instance attached to req.app
+const broadcast = (req, eventName, payload) => {
+    const io = req.app.get('io');
+    if (io) io.emit(eventName, payload);
+};
 
 const AuthController = {
     // ── POST /api/auth/register ───────────────────────────
@@ -32,6 +41,18 @@ const AuthController = {
             if (!EMAIL_RE.test(email)) {
                 return res.status(400).json({ success: false, message: 'Enter a valid email address.' });
             }
+
+            // Verify the email domain has MX records (can actually receive mail)
+            const domain = email.split('@')[1];
+            try {
+                const mxRecords = await resolveMx(domain);
+                if (!mxRecords || mxRecords.length === 0) {
+                    return res.status(400).json({ success: false, message: 'This email domain cannot receive emails. Please use a valid email address.' });
+                }
+            } catch (dnsErr) {
+                return res.status(400).json({ success: false, message: 'This email domain does not exist. Please use a valid email address.' });
+            }
+
             if (password.length < 6) {
                 return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
             }
@@ -43,7 +64,9 @@ const AuthController = {
 
             const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
             const user = await UserModel.create({ username, email, password_hash, role: 'user' });
-            const token = signToken(user);
+
+            // Broadcast new user creation for admin view live update
+            broadcast(req, 'user:registered', _sanitize(user));
 
             // Send welcome email — awaited in its own try/catch so errors
             // are visible in the terminal without blocking the response
@@ -71,10 +94,11 @@ const AuthController = {
                 });
                 console.log(`📧  Welcome email sent to ${email}`);
             } catch (mailErr) {
-                console.error('⚠️  Welcome email failed:', mailErr.message, mailErr.code || '');
+                console.error('⚠️  Welcome email failed:', mailErr.message);
+                console.error('    Full error:', JSON.stringify({ code: mailErr.code, command: mailErr.command, response: mailErr.response, responseCode: mailErr.responseCode }, null, 2));
             }
 
-            res.status(201).json({ success: true, token, user: _sanitize(user) });
+            res.status(201).json({ success: true, message: 'Account created successfully.', user: _sanitize(user) });
         } catch (err) {
             console.error('Register error:', err);
             if (err.code === 'ER_DUP_ENTRY') {

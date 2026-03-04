@@ -1,0 +1,1250 @@
+/* ============================================================
+   EventSyncEngine — Elite Visual Enhancement Layer
+   Layered on top of style.css — no destructive overrides
+   GPU-accelerated animations only (transform, opacity, filter)
+   ============================================================ */
+
+/* Hide native cursor — tech cursor replaces it everywhere */
+*,
+*::before,
+*::after,
+html,
+body,
+a,
+button,
+input,
+textarea,
+select,
+option,
+optgroup,
+label,
+[role="button"],
+.btn,
+.tab-btn,
+.filter-select,
+.event-card,
+.stat-chip,
+.modal,
+.modal-overlay,
+.auth-card,
+.btn-auth {
+    cursor: none !important;
+}
+
+/* ── @property for smooth gradient animation ──────────────── */
+@property --grad-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+@property --aura-x {
+    syntax: '<percentage>';
+    initial-value: 50%;
+    inherits: false;
+}
+
+@property --aura-y {
+    syntax: '<percentage>';
+    initial-value: 50%;
+    inherits: false;
+}
+
+/* ── Cinematic Animated Gradient Mesh Background ──────────── */
+body {
+    background:
+        var(--bg-primary);
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: -50%;
+    z-index: -2;
+    background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(34, 211, 238, 0.07), transparent 55%),
+        radial-gradient(ellipse 60% 70% at 80% 20%, rgba(99, 102, 241, 0.09), transparent 50%),
+        radial-gradient(ellipse 70% 50% at 50% 80%, rgba(139, 92, 246, 0.06), transparent 55%),
+        radial-gradient(ellipse 50% 50% at 10% 60%, rgba(244, 113, 181, 0.04), transparent 50%),
+        radial-gradient(ellipse 40% 40% at 90% 80%, rgba(34, 211, 238, 0.05), transparent 45%);
+    animation: cosmicDrift 25s ease-in-out infinite alternate;
+    will-change: transform;
+    pointer-events: none;
+}
+
+@keyframes cosmicDrift {
+    0% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
+    }
+
+    33% {
+        transform: translate(3%, -2%) rotate(1deg) scale(1.02);
+    }
+
+    66% {
+        transform: translate(-2%, 3%) rotate(-0.5deg) scale(0.98);
+    }
+
+    100% {
+        transform: translate(1%, -1%) rotate(0.5deg) scale(1.01);
+    }
+}
+
+/* ── Enhanced Tech Grid Overlay ───────────────────────────── */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image:
+        linear-gradient(rgba(34, 211, 238, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.018) 1px, transparent 1px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 75%);
+    pointer-events: none;
+    animation: gridPulse 8s ease-in-out infinite alternate;
+}
+
+@keyframes gridPulse {
+    0% {
+        opacity: 0.4;
+    }
+
+    100% {
+        opacity: 0.8;
+    }
+}
+
+/* ── Radial Aura Behind Dashboard ─────────────────────────── */
+.dashboard {
+    position: relative;
+}
+
+.dashboard::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 600px;
+    background: radial-gradient(circle at var(--aura-x, 50%) var(--aura-y, 50%),
+            rgba(99, 102, 241, 0.08) 0%,
+            rgba(34, 211, 238, 0.04) 30%,
+            rgba(139, 92, 246, 0.02) 50%,
+            transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+    filter: blur(40px);
+    animation: auraBreath 6s ease-in-out infinite alternate;
+    will-change: transform, opacity;
+}
+
+@keyframes auraBreath {
+    0% {
+        opacity: 0.5;
+        transform: translateX(-50%) scale(1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1.08);
+    }
+}
+
+/* ── Enhanced Header ──────────────────────────────────────── */
+.app-header {
+    background: rgba(6, 7, 13, 0.88) !important;
+    border-bottom: 1px solid rgba(34, 211, 238, 0.06) !important;
+    box-shadow:
+        0 1px 0 rgba(99, 102, 241, 0.08),
+        0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.app-header::after {
+    background: linear-gradient(90deg,
+            transparent 5%,
+            rgba(34, 211, 238, 0.25) 25%,
+            rgba(99, 102, 241, 0.35) 50%,
+            rgba(139, 92, 246, 0.25) 75%,
+            transparent 95%) !important;
+    opacity: 0.6 !important;
+    animation: headerGlow 4s ease-in-out infinite alternate;
+}
+
+@keyframes headerGlow {
+    0% {
+        opacity: 0.3;
+    }
+
+    100% {
+        opacity: 0.7;
+    }
+}
+
+/* ── Logo Glow Upgrade ────────────────────────────────────── */
+.logo-icon {
+    box-shadow:
+        0 4px 20px rgba(99, 102, 241, 0.35),
+        0 0 40px rgba(34, 211, 238, 0.12) !important;
+}
+
+/* ── Enhanced Glass Cards ─────────────────────────────────── */
+.card.glass {
+    background: rgba(13, 17, 23, 0.78) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+    border: 1px solid rgba(99, 102, 241, 0.06) !important;
+    box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.4),
+        0 0 1px rgba(34, 211, 238, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+    transition: all 0.4s cubic-bezier(.4, 0, .2, 1) !important;
+}
+
+.card.glass:hover {
+    border-color: rgba(99, 102, 241, 0.15) !important;
+    box-shadow:
+        0 8px 40px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(99, 102, 241, 0.06),
+        0 0 1px rgba(34, 211, 238, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ── 3D Event Card Tilt ───────────────────────────────────── */
+.event-card {
+    --rx: 0deg;
+    --ry: 0deg;
+    --glow-x: 50%;
+    --glow-y: 50%;
+    transform-style: preserve-3d;
+    transform: perspective(800px) rotateX(var(--rx)) rotateY(var(--ry));
+    transition:
+        transform 0.15s ease-out,
+        box-shadow 0.4s cubic-bezier(.4, 0, .2, 1),
+        border-color 0.4s ease,
+        background 0.4s ease !important;
+    will-change: transform;
+    background: rgba(13, 17, 23, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Inner glow that follows mouse */
+.event-card>.card-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(600px circle at var(--glow-x) var(--glow-y),
+            rgba(99, 102, 241, 0.06),
+            rgba(34, 211, 238, 0.02) 40%,
+            transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.event-card:hover>.card-glow {
+    opacity: 1;
+}
+
+/* Card children need z-index above glow */
+.event-card>*:not(.card-glow) {
+    position: relative;
+    z-index: 1;
+}
+
+.event-card:hover {
+    transform: perspective(800px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(-8px) !important;
+    border-color: rgba(99, 102, 241, 0.18) !important;
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(99, 102, 241, 0.08),
+        0 0 80px rgba(34, 211, 238, 0.03),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    background: rgba(18, 22, 32, 0.9) !important;
+}
+
+/* ── Light Sweep Effect on Cards ──────────────────────────── */
+.event-card .light-sweep {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(105deg,
+            transparent 40%,
+            rgba(255, 255, 255, 0.03) 45%,
+            rgba(255, 255, 255, 0.06) 50%,
+            rgba(255, 255, 255, 0.03) 55%,
+            transparent 60%);
+    transform: translateX(-100%);
+    transition: none;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.event-card:hover .light-sweep {
+    animation: lightSweep 0.8s ease-out forwards;
+}
+
+@keyframes lightSweep {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* ── Staggered Reveal Animation ───────────────────────────── */
+.event-card,
+.card.glass,
+.stat-chip {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+}
+
+.event-card.revealed,
+.card.glass.revealed,
+.stat-chip.revealed {
+    animation: revealUp 0.6s cubic-bezier(.22, 1, .36, 1) forwards;
+}
+
+/* Stagger delays for cards */
+.event-card.revealed:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.event-card.revealed:nth-child(2) {
+    animation-delay: 0.06s;
+}
+
+.event-card.revealed:nth-child(3) {
+    animation-delay: 0.12s;
+}
+
+.event-card.revealed:nth-child(4) {
+    animation-delay: 0.18s;
+}
+
+.event-card.revealed:nth-child(5) {
+    animation-delay: 0.24s;
+}
+
+.event-card.revealed:nth-child(6) {
+    animation-delay: 0.30s;
+}
+
+.event-card.revealed:nth-child(7) {
+    animation-delay: 0.36s;
+}
+
+.event-card.revealed:nth-child(8) {
+    animation-delay: 0.42s;
+}
+
+.event-card.revealed:nth-child(9) {
+    animation-delay: 0.48s;
+}
+
+.event-card.revealed:nth-child(n+10) {
+    animation-delay: 0.54s;
+}
+
+/* Stagger for stat chips */
+.stat-chip.revealed:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.stat-chip.revealed:nth-child(2) {
+    animation-delay: 0.08s;
+}
+
+.stat-chip.revealed:nth-child(3) {
+    animation-delay: 0.16s;
+}
+
+.stat-chip.revealed:nth-child(4) {
+    animation-delay: 0.24s;
+}
+
+/* Stagger for sidebar cards */
+.sidebar .card.glass.revealed:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.sidebar .card.glass.revealed:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+@keyframes revealUp {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.96);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ── Enhanced Stat Chips ──────────────────────────────────── */
+.stat-chip {
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(99, 102, 241, 0.06) !important;
+    transition: all 0.35s cubic-bezier(.4, 0, .2, 1) !important;
+}
+
+.stat-chip:hover {
+    transform: translateY(-3px) scale(1.04) !important;
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.3),
+        0 0 20px rgba(99, 102, 241, 0.08) !important;
+}
+
+.stat-value {
+    transition: transform 0.3s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.stat-chip:hover .stat-value {
+    transform: scale(1.15);
+}
+
+/* ── Enhanced Search Box ──────────────────────────────────── */
+.search-box {
+    backdrop-filter: blur(12px);
+}
+
+.search-box:focus-within {
+    box-shadow:
+        0 0 0 3px rgba(99, 102, 241, 0.12),
+        0 0 30px rgba(34, 211, 238, 0.06),
+        0 4px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ── Enhanced Filter Selects ──────────────────────────────── */
+.filter-select {
+    backdrop-filter: blur(8px);
+    transition: all 0.35s ease !important;
+}
+
+.filter-select:hover {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.06);
+}
+
+/* ── Enhanced Live Indicator ──────────────────────────────── */
+.live-indicator.connected {
+    border-color: rgba(62, 232, 165, 0.15) !important;
+    box-shadow: 0 0 20px rgba(62, 232, 165, 0.06);
+}
+
+/* ── Enhanced Badges ──────────────────────────────────────── */
+.badge {
+    backdrop-filter: blur(6px);
+    transition: all 0.3s cubic-bezier(.34, 1.56, .64, 1) !important;
+}
+
+.event-card:hover .badge {
+    transform: scale(1.08) !important;
+    filter: brightness(1.15);
+}
+
+/* ── Enhanced Priority Bar ────────────────────────────────── */
+.event-card:hover.priority-low::before {
+    box-shadow: 0 0 18px rgba(62, 232, 165, 0.4), 0 0 4px rgba(62, 232, 165, 0.8) !important;
+}
+
+.event-card:hover.priority-medium::before {
+    box-shadow: 0 0 18px rgba(247, 201, 72, 0.4), 0 0 4px rgba(247, 201, 72, 0.8) !important;
+}
+
+.event-card:hover.priority-high::before {
+    box-shadow: 0 0 18px rgba(255, 159, 67, 0.4), 0 0 4px rgba(255, 159, 67, 0.8) !important;
+}
+
+.event-card:hover.priority-critical::before {
+    box-shadow: 0 0 18px rgba(255, 107, 107, 0.4), 0 0 4px rgba(255, 107, 107, 0.8) !important;
+}
+
+/* ── Enhanced Button Interactions ─────────────────────────── */
+.btn-primary {
+    box-shadow:
+        0 4px 20px rgba(99, 102, 241, 0.3),
+        0 0 40px rgba(99, 102, 241, 0.08) !important;
+    transition: all 0.3s cubic-bezier(.4, 0, .2, 1) !important;
+}
+
+.btn-primary:hover {
+    box-shadow:
+        0 8px 35px rgba(99, 102, 241, 0.4),
+        0 0 60px rgba(34, 211, 238, 0.1) !important;
+    transform: translateY(-3px) scale(1.02) !important;
+}
+
+.btn-primary:active {
+    transform: translateY(0) scale(0.97) !important;
+    transition-duration: 0.1s !important;
+}
+
+/* ── Enhanced Sync Log ────────────────────────────────────── */
+.sync-log li {
+    transition: all 0.3s ease !important;
+    border-radius: 6px;
+    padding-left: 0.3rem !important;
+    padding-right: 0.3rem !important;
+}
+
+.sync-log li:hover {
+    background: rgba(99, 102, 241, 0.04);
+    padding-left: 0.6rem !important;
+}
+
+.sync-action {
+    transition: all 0.3s ease;
+}
+
+.sync-log li:hover .sync-action {
+    filter: brightness(1.2);
+    transform: scale(1.05);
+}
+
+/* ── Enhanced RSVP Buttons ────────────────────────────────── */
+.btn-rsvp {
+    transition: all 0.3s cubic-bezier(.34, 1.56, .64, 1) !important;
+}
+
+.btn-rsvp:hover {
+    box-shadow:
+        0 6px 24px rgba(62, 232, 165, 0.25),
+        0 0 15px rgba(62, 232, 165, 0.12) !important;
+}
+
+/* ── Enhanced Modal ───────────────────────────────────────── */
+.modal-overlay {
+    background: rgba(2, 3, 8, 0.75) !important;
+    backdrop-filter: blur(12px) saturate(120%) !important;
+}
+
+.modal.card.glass {
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.6),
+        0 0 60px rgba(99, 102, 241, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ── Enhanced Toast Notifications ─────────────────────────── */
+.toast {
+    backdrop-filter: blur(24px) saturate(160%) !important;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+/* ── TECH CURSOR SYSTEM ───────────────────────────────────── */
+
+/* Hide native cursor on dashboard */
+body,
+body *:not(input):not(textarea):not(select):not(button):not(.btn):not(.tab-btn):not(.pw-eye):not(a) {
+    cursor: none !important;
+}
+
+/* Ensure clickable elements get pointer but still hide cursor */
+a,
+button,
+.btn,
+.tab-btn,
+.pw-eye,
+select,
+[role="button"],
+[onclick] {
+    cursor: none !important;
+}
+
+/* ── Cursor Container ─────────────────────────────────────── */
+.tech-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 99999;
+    will-change: transform;
+    mix-blend-mode: screen;
+}
+
+/* ── Outer Rotating Reticle Ring ───────────────────────────── */
+.cursor-ring {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    top: -22px;
+    left: -22px;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    border-top-color: rgba(34, 211, 238, 0.8);
+    border-right-color: rgba(99, 102, 241, 0.4);
+    border-bottom-color: rgba(139, 92, 246, 0.2);
+    animation: cursorSpin 3s linear infinite;
+    will-change: transform;
+    filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.5));
+    transition: width 0.25s ease, height 0.25s ease, top 0.25s ease, left 0.25s ease,
+        border-color 0.3s ease, filter 0.3s ease;
+}
+
+/* Second ring — counter-rotate */
+.cursor-ring-inner {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    top: -15px;
+    left: -15px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    border-left-color: rgba(139, 92, 246, 0.6);
+    border-bottom-color: rgba(34, 211, 238, 0.3);
+    animation: cursorSpinReverse 2s linear infinite;
+    will-change: transform;
+    filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.4));
+    transition: width 0.25s ease, height 0.25s ease, top 0.25s ease, left 0.25s ease,
+        border-color 0.3s ease;
+}
+
+@keyframes cursorSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes cursorSpinReverse {
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
+/* ── Core Dot ─────────────────────────────────────────────── */
+.cursor-dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    top: -3px;
+    left: -3px;
+    border-radius: 50%;
+    background: #22d3ee;
+    box-shadow:
+        0 0 6px rgba(34, 211, 238, 0.9),
+        0 0 15px rgba(34, 211, 238, 0.5),
+        0 0 30px rgba(99, 102, 241, 0.3);
+    animation: corePulse 2s ease-in-out infinite;
+    transition: width 0.2s ease, height 0.2s ease, top 0.2s ease, left 0.2s ease,
+        background 0.3s ease, box-shadow 0.3s ease;
+}
+
+@keyframes corePulse {
+
+    0%,
+    100% {
+        box-shadow:
+            0 0 6px rgba(34, 211, 238, 0.9),
+            0 0 15px rgba(34, 211, 238, 0.5),
+            0 0 30px rgba(99, 102, 241, 0.3);
+    }
+
+    50% {
+        box-shadow:
+            0 0 8px rgba(34, 211, 238, 1),
+            0 0 22px rgba(34, 211, 238, 0.7),
+            0 0 45px rgba(99, 102, 241, 0.4);
+    }
+}
+
+/* ── Crosshair Lines ──────────────────────────────────────── */
+.cursor-cross-h,
+.cursor-cross-v {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.4), transparent);
+    transition: opacity 0.3s ease, width 0.25s ease, height 0.25s ease;
+}
+
+.cursor-cross-h {
+    width: 20px;
+    height: 1px;
+    top: -0.5px;
+    left: -10px;
+}
+
+.cursor-cross-v {
+    width: 1px;
+    height: 20px;
+    top: -10px;
+    left: -0.5px;
+    background: linear-gradient(180deg, transparent, rgba(34, 211, 238, 0.4), transparent);
+}
+
+/* ── Ambient Halo ─────────────────────────────────────────── */
+.cursor-halo {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    top: -60px;
+    left: -60px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+            rgba(34, 211, 238, 0.05) 0%,
+            rgba(99, 102, 241, 0.03) 30%,
+            rgba(139, 92, 246, 0.015) 50%,
+            transparent 70%);
+    filter: blur(8px);
+    animation: haloShift 4s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+@keyframes haloShift {
+    0% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+
+    100% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* ── Particle Trail ───────────────────────────────────────── */
+.cursor-particle {
+    position: fixed;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99998;
+    will-change: transform, opacity;
+    mix-blend-mode: screen;
+}
+
+.cursor-particle.type-a {
+    background: rgba(34, 211, 238, 0.8);
+    box-shadow: 0 0 6px rgba(34, 211, 238, 0.6), 0 0 12px rgba(34, 211, 238, 0.3);
+}
+
+.cursor-particle.type-b {
+    background: rgba(99, 102, 241, 0.8);
+    box-shadow: 0 0 6px rgba(99, 102, 241, 0.6), 0 0 12px rgba(99, 102, 241, 0.3);
+}
+
+.cursor-particle.type-c {
+    background: rgba(139, 92, 246, 0.8);
+    box-shadow: 0 0 6px rgba(139, 92, 246, 0.6), 0 0 12px rgba(139, 92, 246, 0.3);
+}
+
+/* ── Hover state: cursor expands on interactive elements ──── */
+.tech-cursor.hovering .cursor-ring {
+    width: 56px;
+    height: 56px;
+    top: -28px;
+    left: -28px;
+    border-top-color: rgba(139, 92, 246, 0.9);
+    border-right-color: rgba(34, 211, 238, 0.6);
+    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.6));
+}
+
+.tech-cursor.hovering .cursor-ring-inner {
+    width: 40px;
+    height: 40px;
+    top: -20px;
+    left: -20px;
+    border-left-color: rgba(34, 211, 238, 0.7);
+}
+
+.tech-cursor.hovering .cursor-dot {
+    width: 10px;
+    height: 10px;
+    top: -5px;
+    left: -5px;
+    background: #a78bfa;
+    box-shadow:
+        0 0 8px rgba(139, 92, 246, 1),
+        0 0 20px rgba(139, 92, 246, 0.6),
+        0 0 40px rgba(99, 102, 241, 0.3);
+}
+
+.tech-cursor.hovering .cursor-cross-h {
+    width: 30px;
+    left: -15px;
+}
+
+.tech-cursor.hovering .cursor-cross-v {
+    height: 30px;
+    top: -15px;
+}
+
+/* ── Clicking state: cursor contracts ─────────────────────── */
+.tech-cursor.clicking .cursor-ring {
+    width: 32px;
+    height: 32px;
+    top: -16px;
+    left: -16px;
+    border-color: rgba(34, 211, 238, 0.9);
+    filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.8));
+}
+
+.tech-cursor.clicking .cursor-ring-inner {
+    width: 22px;
+    height: 22px;
+    top: -11px;
+    left: -11px;
+}
+
+.tech-cursor.clicking .cursor-dot {
+    width: 4px;
+    height: 4px;
+    top: -2px;
+    left: -2px;
+    box-shadow:
+        0 0 12px rgba(34, 211, 238, 1),
+        0 0 30px rgba(34, 211, 238, 0.8),
+        0 0 60px rgba(99, 102, 241, 0.5);
+}
+
+.tech-cursor.clicking .cursor-cross-h,
+.tech-cursor.clicking .cursor-cross-v {
+    opacity: 0;
+}
+
+/* ── Floating depth for sidebar ───────────────────────────── */
+.sidebar .card.glass {
+    transform: translateZ(0);
+    transition: all 0.4s cubic-bezier(.4, 0, .2, 1), transform 0.6s ease !important;
+}
+
+.sidebar .card.glass:hover {
+    transform: translateY(-4px) !important;
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.4),
+        0 0 30px rgba(99, 102, 241, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+/* ── Dashboard title glow ─────────────────────────────────── */
+.dashboard-header h2 {
+    background: linear-gradient(135deg, #e6edf3 10%, #a78bfa 50%, #22d3ee 90%) !important;
+    background-size: 200% auto;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    animation: titleShimmer 5s ease-in-out infinite alternate;
+}
+
+@keyframes titleShimmer {
+    0% {
+        background-position: 0% center;
+    }
+
+    100% {
+        background-position: 100% center;
+    }
+}
+
+/* ── Avatar glow on hover ─────────────────────────────────── */
+.event-card:hover .avatar-dot {
+    box-shadow:
+        0 0 12px rgba(99, 102, 241, 0.35),
+        0 0 3px rgba(34, 211, 238, 0.4) !important;
+}
+
+/* ── Card title glow on hover ─────────────────────────────── */
+.event-card:hover .event-card-title {
+    text-shadow: 0 0 20px rgba(167, 139, 250, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CUSTOM THEMED DROPDOWN — replaces native <select>
+   Glassmorphism + cursor palette
+   ═══════════════════════════════════════════════════════════ */
+
+.custom-dropdown {
+    position: relative;
+    display: inline-block;
+    min-width: 140px;
+}
+
+.custom-dropdown.open {
+    z-index: 600;
+}
+
+/* Prevent sidebar and cards from clipping dropdown panels */
+.sidebar .card.glass,
+.sidebar .form-group,
+.sidebar .form-row,
+.sidebar form {
+    overflow: visible !important;
+}
+
+/* The first card (Create Event) must sit above the second (Sync Activity) */
+.sidebar .card.glass:first-child {
+    position: relative;
+    z-index: 10;
+}
+
+/* Sidebar must not clip dropdown panels */
+.sidebar {
+    overflow-y: auto;
+    overflow-x: visible;
+}
+
+/* When dropdown is open, sidebar must not clip it */
+.sidebar:has(.custom-dropdown.open) {
+    overflow: visible !important;
+}
+
+.cd-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    background: rgba(99, 102, 241, 0.06);
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    border-radius: 10px;
+    color: #cbd5e1;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: none !important;
+    transition: all 0.25s ease;
+    user-select: none;
+    outline: none;
+    white-space: nowrap;
+}
+
+.cd-trigger:hover,
+.cd-trigger:focus {
+    border-color: rgba(99, 102, 241, 0.45);
+    background: rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.08), 0 0 0 2px rgba(99, 102, 241, 0.06);
+    color: #e2e8f0;
+}
+
+.custom-dropdown.open .cd-trigger {
+    border-color: rgba(34, 211, 238, 0.4);
+    background: rgba(99, 102, 241, 0.12);
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.08), 0 0 0 2px rgba(34, 211, 238, 0.08);
+}
+
+.cd-trigger-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cd-trigger-arrow {
+    display: flex;
+    align-items: center;
+    color: rgba(99, 102, 241, 0.6);
+    transition: transform 0.3s ease, color 0.25s;
+}
+
+.custom-dropdown.open .cd-trigger-arrow {
+    transform: rotate(180deg);
+    color: rgba(34, 211, 238, 0.8);
+}
+
+/* ── Options Panel ──────────────────────────────────────────── */
+.cd-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    min-width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    background: rgba(10, 15, 30, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 12px;
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(99, 102, 241, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+    transition: max-height 0.3s ease, opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+}
+
+.custom-dropdown.open .cd-panel {
+    max-height: 260px;
+    overflow-y: auto;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+/* Scrollbar styling */
+.cd-panel::-webkit-scrollbar {
+    width: 4px;
+}
+
+.cd-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.cd-panel::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 4px;
+}
+
+/* ── Individual Option ──────────────────────────────────────── */
+.cd-option {
+    padding: 0.55rem 0.9rem;
+    font-size: 0.84rem;
+    color: #94a3b8;
+    cursor: none !important;
+    transition: all 0.15s ease;
+    position: relative;
+    border-left: 2px solid transparent;
+}
+
+.cd-option:hover {
+    background: rgba(99, 102, 241, 0.12);
+    color: #e2e8f0;
+    border-left-color: rgba(34, 211, 238, 0.6);
+}
+
+.cd-option.selected {
+    background: rgba(99, 102, 241, 0.15);
+    color: #22d3ee;
+    font-weight: 600;
+    border-left-color: #22d3ee;
+}
+
+.cd-option.selected::after {
+    content: '✓';
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    color: #22d3ee;
+}
+
+.cd-option.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.cd-option:first-child {
+    border-radius: 11px 11px 0 0;
+}
+
+.cd-option:last-child {
+    border-radius: 0 0 11px 11px;
+}
+
+/* ── Panel glow line on top ─────────────────────────────────── */
+.cd-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 15%;
+    right: 15%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.3), rgba(99, 102, 241, 0.3), transparent);
+    z-index: 1;
+}
+
+/* ── Sidebar select styling ─────────────────────────────────── */
+.sidebar .custom-dropdown {
+    width: 100%;
+}
+
+.sidebar .cd-trigger {
+    width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AMBIENT PARTICLE BACKGROUND — cursor-themed atmosphere
+   Floating orbs, micro-particles, pulse rings
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Orb Container ─────────────────────────────────────────── */
+.ambient-orb-container {
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.ambient-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    will-change: transform;
+    pointer-events: none;
+}
+
+/* 3 unique orb drift keyframes */
+@keyframes orbFloat0 {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    33% {
+        transform: translate(40px, -30px) scale(1.08);
+    }
+
+    66% {
+        transform: translate(-20px, 25px) scale(0.95);
+    }
+
+    100% {
+        transform: translate(30px, -15px) scale(1.05);
+    }
+}
+
+@keyframes orbFloat1 {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    25% {
+        transform: translate(-35px, 20px) scale(1.1);
+    }
+
+    50% {
+        transform: translate(15px, -35px) scale(0.92);
+    }
+
+    75% {
+        transform: translate(-25px, -10px) scale(1.06);
+    }
+
+    100% {
+        transform: translate(20px, 30px) scale(0.98);
+    }
+}
+
+@keyframes orbFloat2 {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    50% {
+        transform: translate(25px, 35px) scale(1.12);
+    }
+
+    100% {
+        transform: translate(-30px, -20px) scale(0.94);
+    }
+}
+
+/* ── Micro Particle Container ──────────────────────────────── */
+.ambient-micro-container {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.ambient-micro {
+    position: absolute;
+    border-radius: 50%;
+    will-change: transform, opacity;
+    pointer-events: none;
+}
+
+@keyframes microDrift {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.3;
+    }
+
+    25% {
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: translate(30px, -40px) scale(1.3);
+        opacity: 0.5;
+    }
+
+    75% {
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translate(-25px, 35px) scale(0.8);
+        opacity: 0.3;
+    }
+}
+
+/* ── Pulse Ring Container ──────────────────────────────────── */
+.ambient-pulse-container {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.ambient-pulse-ring {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(34, 211, 238, 0.12);
+    transform: translate(-50%, -50%);
+    animation: pulseExpand 3s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes pulseExpand {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 0.6;
+    }
+
+    60% {
+        opacity: 0.2;
+    }
+
+    100% {
+        width: 400px;
+        height: 400px;
+        opacity: 0;
+    }
+}
+
+/* ── Login/auth page cursor support ────────────────────────── */
+.auth-card {
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Reduced motion accessibility ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .event-card {
+        transform: none !important;
+    }
+
+    .event-card:hover {
+        transform: translateY(-4px) !important;
+    }
+}

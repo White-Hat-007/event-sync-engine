@@ -30,11 +30,11 @@ const EventModel = {
 
     // ── Create a new event ────────────────────────────────
     async create(data) {
-        const { title, description, event_date, event_time, location, priority, status, created_by } = data;
+        const { title, description, event_date, event_end_date, event_time, event_end_time, location, priority, status, created_by } = data;
         const [result] = await pool.query(`
-      INSERT INTO events (title, description, event_date, event_time, location, priority, status, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `, [title, description || null, event_date, event_time, location || null, priority || 'medium', status || 'upcoming', created_by || 1]);
+      INSERT INTO events (title, description, event_date, event_end_date, event_time, event_end_time, location, priority, status, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [title, description || null, event_date, event_end_date || null, event_time, event_end_time || null, location || null, priority || 'medium', status || 'upcoming', created_by || 1]);
         return this.getById(result.insertId);
     },
 
@@ -44,7 +44,7 @@ const EventModel = {
         const values = [];
 
         for (const [key, value] of Object.entries(data)) {
-            if (['title', 'description', 'event_date', 'event_time', 'location', 'priority', 'status'].includes(key)) {
+            if (['title', 'description', 'event_date', 'event_end_date', 'event_time', 'event_end_time', 'location', 'priority', 'status'].includes(key)) {
                 fields.push(`${key} = ?`);
                 values.push(value);
             }
@@ -128,6 +128,34 @@ const EventModel = {
       LIMIT ?
     `, [limit]);
         return rows;
+    },
+
+    // ── Automatic Status Transitions ──────────────────────
+    async autoUpdateStatuses() {
+        // 1. Move 'upcoming' to 'ongoing' if start time reached AND (no end time OR end time not yet reached)
+        const [ongoingResult] = await pool.query(`
+      UPDATE events 
+      SET status = 'ongoing' 
+      WHERE status = 'upcoming' 
+        AND TIMESTAMP(event_date, event_time) <= NOW()
+        AND (
+          (event_end_date IS NULL AND (event_end_time IS NULL OR TIMESTAMP(event_date, event_end_time) > NOW())) OR
+          (event_end_date IS NOT NULL AND TIMESTAMP(event_end_date, COALESCE(event_end_time, '23:59:59')) > NOW())
+        )
+    `);
+
+        // 2. Move 'upcoming' or 'ongoing' to 'completed' if end time reached
+        const [completedResult] = await pool.query(`
+      UPDATE events 
+      SET status = 'completed' 
+      WHERE status IN ('upcoming', 'ongoing')
+        AND (
+          (event_end_date IS NOT NULL AND TIMESTAMP(event_end_date, COALESCE(event_end_time, '23:59:59')) <= NOW()) OR
+          (event_end_date IS NULL AND event_end_time IS NOT NULL AND TIMESTAMP(event_date, event_end_time) <= NOW())
+        )
+    `);
+
+        return ongoingResult.affectedRows > 0 || completedResult.affectedRows > 0;
     }
 };
 

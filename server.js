@@ -11,8 +11,10 @@ const path = require('path');
 
 const eventRoutes = require('./routes/events');
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/users');
 const errorHandler = require('./middleware/errorHandler');
 const syncHandler = require('./sockets/syncHandler');
+const statusWorker = require('./sockets/statusWorker');
 
 // ── App & Server ────────────────────────────────────────
 const app = express();
@@ -35,6 +37,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ── API Routes ──────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {
@@ -46,6 +49,7 @@ app.use(errorHandler);
 
 // ── WebSocket Handler ───────────────────────────────────
 syncHandler(io);
+statusWorker(io);
 
 // ── Start Server ────────────────────────────────────────
 const PORT = process.env.PORT || 3000;

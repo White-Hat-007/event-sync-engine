@@ -32,7 +32,7 @@ const EventController = {
     // ── POST /api/events  (admin only — enforced by route middleware) ─
     async create(req, res, next) {
         try {
-            const { title, event_date, event_time } = req.body;
+            const { title, event_date, event_end_date, event_time, event_end_time } = req.body;
             if (!title || !event_date || !event_time) {
                 return res.status(400).json({ success: false, message: 'title, event_date, and event_time are required' });
             }

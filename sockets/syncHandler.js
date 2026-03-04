@@ -23,6 +23,12 @@ function syncHandler(io) {
             }
         });
 
+        // ── Admin: Sync user role changes live ──────────────
+        socket.on('role-updated', (data) => {
+            // Broadcast to everyone else
+            socket.broadcast.emit('role-synced', data);
+        });
+
         // ── Disconnect ─────────────────────────────────────
         socket.on('disconnect', () => {
             connectedClients--;
